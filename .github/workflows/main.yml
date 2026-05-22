@@ -1,0 +1,31 @@
+name: Download and Package Xiaoya Docker Images
+
+on:
+  workflow_dispatch: # 允许你在网页上手动点击按钮触发运行
+
+jobs:
+  download-and-save:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Maximize Disk Space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          
+      - name: Pull Xiaoya Docker Images
+        run: |
+          docker pull xiaoyaliu/alist:latest
+          docker pull xiaoyaliu/emby:latest
+
+      - name: Save Images to Tarball
+        run: |
+          docker save -o xiaoya_images.tar xiaoyaliu/alist:latest xiaoyaliu/emby:latest
+
+      - name: Upload Images Archive as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiaoya-offline-images
+          path: xiaoya_images.tar
+          retention-days: 1 # 下载包在 GitHub 仅保留 1 天，过期自动清理
