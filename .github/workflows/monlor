@@ -1,0 +1,35 @@
+name: Download and Package Monlor Xiaoya Docker Images
+
+on:
+  workflow_dispatch: # 允许在网页上手动点击按钮触发运行
+
+jobs:
+  download-and-save-monlor:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Maximize Disk Space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          
+      - name: Pull Monlor Docker Images
+        run: |
+          # 拉取 Monlor 的核心主程序和专属 Emby（默认就会下载 x86 架构）
+          docker pull ghcr.io/monlor/xiaoya-alist:latest
+          docker pull ghcr.io/monlor/embyserver:latest
+
+      - name: Save Images to Tarball
+        run: |
+          # 打包这两个核心镜像为一个文件
+          docker save -o monlor_xiaoya_images.tar \
+            ghcr.io/monlor/xiaoya-alist:latest \
+            ghcr.io/monlor/embyserver:latest
+
+      - name: Upload Images Archive as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: monlor-offline-images
+          path: monlor_xiaoya_images.tar
+          retention-days: 1 # 下载包在 GitHub 仅保留 1 天
